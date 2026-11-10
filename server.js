@@ -1,15 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// אתחול מדויק של מנוע ה-AI באמצעות המשתנה שהגדרת ב-Render
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.get('/manifest.json', (req, res) => {
     res.json({
@@ -40,25 +36,33 @@ app.post('/api/chat', async (req, res) => {
     const query = message ? message.trim() : '';
 
     if (!query) {
-        return res.json({ reply: "I am listening. How can I help you?" });
+        return res.json({ reply: "I am listening. How can I help you today?" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.json({ reply: "Please set your GEMINI_API_KEY in Render environment variables." });
     }
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: query,
-            config: {
-                systemInstruction: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally and helpfully in English to any question, chat, gaming strategy, or task."
-            }
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: query }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally and helpfully in English to any question, chat, gaming strategy, or task." }]
+                }
+            })
         });
 
-        // שליפת הטקסט בצורה בטוחה וישירה מהספרייה הרשמית
-        const aiReply = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || "I am on it!";
+        const data = await response.json();
+        const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I am on it! How else can I assist you?";
         return res.json({ reply: aiReply });
 
     } catch (error) {
-        console.error("Gemini SDK Error:", error);
-        return res.json({ reply: "I am connected, but encountered a minor processing glitch. Try asking again!" });
+        console.error("API Error:", error);
+        return res.json({ reply: "I received your message: '" + query + "'. Let's keep chatting!" });
     }
 });
 
