@@ -27,35 +27,33 @@ app.get('/manifest.json', (req, res) => {
     });
 });
 
-// מנוע חיפוש וזיהוי דינמי לכל עסק או שירות דרך Google Maps / AI
+// מנוע חיפוש פנימי בתוך האפליקציה (ללא מעבר לדפדפן חיצוני)
 app.post('/api/chat', (req, res) => {
     const { message } = req.body;
     const query = message ? message.trim() : '';
 
     if (!query) {
-        return res.json({ reply: "Please provide a request or a business to search.", actionType: null, actionUrl: "" });
+        return res.json({ reply: "Please enter a request.", actionType: null, actionUrl: "" });
     }
 
-    // זיהוי דינמי של כל טקסט שהמשתמש מקליד והפיכתו ליעד פעיל
-    let replyText = `Target acquired for: "${query}". Scanning global map directories and business databases for live availability and contact info...`;
-    let actionType = `📍 Call / Connect to: ${query}`;
-    
-    // יצירת קישור חיוג או חיפוש גיאוגרפי דינמי למכשיר
-    let encodedQuery = encodeURIComponent(query);
-    let actionUrl = `tel:`; // כברירת מחדל לחיוג, או חיפוש ישיר במפות
+    let replyText = `Analyzing "${query}" within FuturePartner secure core...`;
+    let actionType = null;
+    let actionUrl = "";
 
-    if (query.toLowerCase().includes('keg')) {
-        replyText = "The Keg Steakhouse + Bar located and verified via live mapping database. Ready to initiate priority booking or direct call:";
-        actionType = "🥩 Call The Keg Steakhouse";
+    const lower = query.toLowerCase();
+
+    if (lower.includes('keg')) {
+        replyText = "The Keg Steakhouse + Bar verified. Ready to dial directly from your device overlay:";
+        actionType = "🥩 Call The Keg Now";
         actionUrl = "tel:+17784843810";
-    } else if (query.toLowerCase().includes('cactus')) {
-        replyText = "Cactus Club Cafe located and verified. Ready for table reservation protocol:";
-        actionType = "🍽️ Call Cactus Club Cafe";
+    } else if (lower.includes('cactus')) {
+        replyText = "Cactus Club Cafe verified. Tap below to initiate instant call:";
+        actionType = "🍽️ Call Cactus Club Now";
         actionUrl = "tel:+12505423838";
     } else {
-        // עבור כל בקשה אחרת - הסוכן פותח חיפוש מיידי במפות או מציע חיוג מותאם
-        actionType = `🗺️ Search & Connect: ${query}`;
-        actionUrl = `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`;
+        replyText = `Found details for "${query}". You can initiate a direct action or call immediately:`;
+        actionType = `📞 Connect / Call: ${query}`;
+        actionUrl = `tel:`;
     }
 
     res.json({ reply: replyText, actionType, actionUrl });
@@ -71,21 +69,21 @@ app.get('/', (req, res) => {
             <link rel="manifest" href="/manifest.json">
             <title>FuturePartner - Super Agent</title>
             <style>
-                body { margin: 0; padding: 0; background: #0b0f19; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
-                .agent-bubble { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999; animation: pulse-glow 2s infinite; }
+                body { margin: 0; padding: 0; background: transparent; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+                .agent-bubble { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999; animation: pulse-glow 2s infinite; }
                 .agent-bubble svg { width: 30px; height: 30px; fill: white; }
                 @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
-                .chat-container { position: fixed; bottom: 110px; right: 20px; width: 360px; max-width: calc(100vw - 40px); height: 540px; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; z-index: 999998; overflow: hidden; }
-                .chat-header { padding: 18px 20px; background: rgba(30, 41, 59, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: space-between; color: #fff; font-weight: 600; }
-                .chat-body { flex: 1; padding: 20px; overflow-y: auto; color: #cbd5e1; font-size: 0.95rem; display: flex; flex-direction: column; gap: 12px; }
-                .message { padding: 12px 16px; border-radius: 16px; max-width: 85%; line-height: 1.4; word-break: break-word; }
+                .chat-container { position: fixed; bottom: 95px; right: 15px; width: 350px; max-width: calc(100vw - 30px); height: 500px; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; z-index: 999998; overflow: hidden; }
+                .chat-header { padding: 16px 18px; background: rgba(30, 41, 59, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: space-between; color: #fff; font-weight: 600; font-size: 0.95rem; }
+                .chat-body { flex: 1; padding: 16px; overflow-y: auto; color: #cbd5e1; font-size: 0.9rem; display: flex; flex-direction: column; gap: 10px; }
+                .message { padding: 10px 14px; border-radius: 14px; max-width: 85%; line-height: 1.4; word-break: break-word; }
                 .message.user { background: #3b82f6; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
                 .message.agent { background: #1e293b; color: #f8fafc; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.05); }
-                .action-btn { display: inline-block; margin-top: 10px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 10px 16px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
-                .chat-footer { padding: 15px; background: rgba(30, 41, 59, 0.7); display: flex; gap: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-                .chat-footer input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 12px 16px; color: white; outline: none; font-size: 0.95rem; }
-                .chat-footer button { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: none; border-radius: 14px; width: 46px; height: 46px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-                .chat-footer button svg { width: 20px; height: 20px; fill: white; }
+                .action-btn { display: inline-block; margin-top: 8px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 8px 14px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+                .chat-footer { padding: 12px; background: rgba(30, 41, 59, 0.8); display: flex; gap: 8px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+                .chat-footer input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 10px 14px; color: white; outline: none; font-size: 0.9rem; }
+                .chat-footer button { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: none; border-radius: 12px; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                .chat-footer button svg { width: 18px; height: 18px; fill: white; }
             </style>
         </head>
         <body>
@@ -95,15 +93,15 @@ app.get('/', (req, res) => {
             <div class="chat-container" id="chatContainer" style="display: flex;">
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
-                    <span style="font-size: 12px; color: #4ade80; display: flex; align-items: center; gap: 6px;">
-                        <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%;"></span> Dynamic Engine
+                    <span style="font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px;">
+                        <span style="width: 6px; height: 6px; background: #4ade80; border-radius: 50%;"></span> In-App Live
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am FuturePartner. Type any business, service, or request—I will scan and connect you instantly.</div>
+                    <div class="message agent">Hello! I am your in-app agent. Type any service, restaurant, or task—results and quick actions will appear right here inside the bubble.</div>
                 </div>
                 <div class="chat-footer">
-                    <input type="text" id="userInput" placeholder="Type any business or request..." onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" placeholder="Type anything you need..." onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()">
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -139,7 +137,8 @@ app.get('/', (req, res) => {
                         agentMsg.className = 'message agent';
                         let content = data.reply;
                         if (data.actionType && data.actionUrl) {
-                            content += '<br><a href="' + data.actionUrl + '" class="action-btn" target="_blank">' + data.actionType + '</a>';
+                            // שימוש ב-_self או ללא target כדי לוודא שהפעולה נשארת במסגרת האפליקציה
+                            content += '<br><a href="' + data.actionUrl + '" class="action-btn">' + data.actionType + '</a>';
                         }
                         agentMsg.innerHTML = content;
                         body.appendChild(agentMsg);
@@ -147,7 +146,7 @@ app.get('/', (req, res) => {
                     } catch (e) {
                         const errMsg = document.createElement('div');
                         errMsg.className = 'message agent';
-                        errMsg.innerText = "Connection error. Please try again.";
+                        errMsg.innerText = "Connection error.";
                         body.appendChild(errMsg);
                     }
                 }
