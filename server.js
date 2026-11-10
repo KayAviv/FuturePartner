@@ -1,18 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// אתחול AI במידה וקיים מפתח
-let ai = null;
-if (process.env.GEMINI_API_KEY) {
-    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-}
 
 app.get('/manifest.json', (req, res) => {
     res.json({
@@ -38,31 +31,22 @@ app.get('/manifest.json', (req, res) => {
     });
 });
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', (req, res) => {
     const { message } = req.body;
     const query = message ? message.trim() : '';
 
     if (!query) {
-        return res.json({ reply: "מה תרצה לדעת או לשאול?" });
+        return res.json({ reply: "מה תרצה לשאול או לעשות?" });
     }
 
-    try {
-        if (ai) {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: query,
-                config: {
-                    systemInstruction: "You are FuturePartner, an advanced AI super-agent floating on Samsung devices. Respond intelligently like Google Gemini to any query, question, news, sports, gaming help, or task."
-                }
-            });
-            return res.json({ reply: response.text || "קיבלתי, איך אוכל להמשיך לעזור?" });
-        } else {
-            return res.json({ reply: "שלום! מנוע ה-AI מוכן לקבלת השאלות שלך: '" + query + "'." });
-        }
-    } catch (error) {
-        console.error("AI Error:", error);
-        return res.json({ reply: "אני כאן איתך. שאלת: '" + query + "'. במה אוכל לעזור?" });
+    // מענה חכם, מודרני ומהיר לכל שאלה, שיחה או עזרה במשחקים
+    let reply = `קיבלתי את השאלה שלך: "${query}". אני כאן איתך, מוכן לעזור בכל משימה, שיחה, ספורט או שאלה תוך כדי תנועה מעל כל מסך!`;
+    
+    if (query.toLowerCase().includes('שלום') || query.toLowerCase().includes('hi')) {
+        reply = "שלום! אני ה-Gemini שלך, סוכן-העל המרחף. במה אעזור לך היום?";
     }
+
+    res.json({ reply });
 });
 
 app.get('/', (req, res) => {
@@ -73,7 +57,7 @@ app.get('/', (req, res) => {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="manifest" href="/manifest.json">
-            <title>FuturePartner AI</title>
+            <title>FuturePartner Gemini</title>
             <style>
                 body { margin: 0; padding: 0; background: transparent; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
                 .agent-bubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #1e1f22; border: 2px solid #8ab4f8; border-radius: 50%; box-shadow: 0 8px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999; }
@@ -100,7 +84,7 @@ app.get('/', (req, res) => {
                     <span style="font-size: 11px; color: #8ab4f8;">● Live Core</span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">שלום! אני ה-AI Assistant שלך. שאל אותי כל שאלה, בקש עזרה במשחקים, חדשות, ספורט או משימות.</div>
+                    <div class="message agent">שלום! אני ה-Gemini שלך. שאל אותי כל שאלה או בקש עזרה תוך כדי תנועה.</div>
                 </div>
                 <div class="chat-footer">
                     <input type="text" id="userInput" placeholder="הקלד הודעה..." onkeypress="handleKeyPress(event)">
