@@ -31,46 +31,75 @@ app.get('/manifest.json', (req, res) => {
     });
 });
 
-app.post('/api/chat', (req, res) => {
+app.post('/api/chat', async (req, res) => {
     const { message } = req.body;
     const query = message ? message.trim() : '';
 
     if (!query) {
-        return res.json({ reply: "מה תרצה לשאול או לעשות?" });
+        return res.json({ reply: "I am listening. How can I help you?" });
     }
 
-    // מענה חכם, מודרני ומהיר לכל שאלה, שיחה או עזרה במשחקים
-    let reply = `קיבלתי את השאלה שלך: "${query}". אני כאן איתך, מוכן לעזור בכל משימה, שיחה, ספורט או שאלה תוך כדי תנועה מעל כל מסך!`;
-    
-    if (query.toLowerCase().includes('שלום') || query.toLowerCase().includes('hi')) {
-        reply = "שלום! אני ה-Gemini שלך, סוכן-העל המרחף. במה אעזור לך היום?";
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    // אם עדיין לא הוגדר מפתח ב-Render
+    if (!apiKey) {
+        return res.json({ 
+            reply: "Please add your GEMINI_API_KEY inside Render Environment Variables to enable live Gemini AI responses!" 
+        });
     }
 
-    res.json({ reply });
+    try {
+        // קריאה ישירה למנוע Gemini 2.5 Flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: query }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally in English, help with gaming strategies, general chat, sports, news, and tasks." }]
+                }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            const aiReply = data.candidates[0].content.parts[0].text;
+            return res.json({ reply: aiReply });
+        } else {
+            return res.json({ reply: "I'm processing your request, but received an unexpected response structure. Try asking again!" });
+        }
+
+    } catch (error) {
+        console.error("Gemini API Fetch Error:", error);
+        return res.json({ reply: "Connection error with Gemini core. Please check your network or API key." });
+    }
 });
 
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
-        <html lang="he" dir="rtl">
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="manifest" href="/manifest.json">
-            <title>FuturePartner Gemini</title>
+            <title>FuturePartner - Gemini Overlay</title>
             <style>
                 body { margin: 0; padding: 0; background: transparent; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
                 .agent-bubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #1e1f22; border: 2px solid #8ab4f8; border-radius: 50%; box-shadow: 0 8px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999; }
                 .agent-bubble img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
                 .chat-container { position: fixed; bottom: 90px; right: 15px; width: 360px; max-width: calc(100vw - 30px); height: 520px; background: #131314; border: 1px solid #333538; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; z-index: 999998; overflow: hidden; }
-                .chat-header { padding: 16px; background: #1e1f22; border-bottom: 1px solid #333538; display: flex; align-items: center; justify-content: space-between; color: #e3e3e3; font-weight: 600; }
+                .chat-header { padding: 16px; background: #1e1f22; border-bottom: 1px solid #333538; display: flex; align-items: center; justify-content: space-between; color: #e3e3e3; font-weight: 600; font-size: 0.95rem; }
                 .chat-body { flex: 1; padding: 16px; overflow-y: auto; color: #e3e3e3; font-size: 0.9rem; display: flex; flex-direction: column; gap: 12px; }
                 .message { padding: 10px 14px; border-radius: 16px; max-width: 85%; line-height: 1.4; word-break: break-word; }
-                .message.user { background: #004a77; color: #fff; align-self: flex-start; }
-                .message.agent { background: #1e1f22; color: #e3e3e3; align-self: flex-end; border: 1px solid #333538; }
-                .chat-footer { padding: 12px; background: #1e1f22; display: flex; gap: 8px; border-top: 1px solid #333538; }
-                .chat-footer input { flex: 1; background: #131314; border: 1px solid #444746; border-radius: 20px; padding: 10px 14px; color: white; outline: none; }
-                .send-btn { background: #8ab4f8; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                .message.user { background: #004a77; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+                .message.agent { background: #1e1f22; color: #e3e3e3; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #333538; }
+                .chat-footer { padding: 12px; background: #1e1f22; display: flex; gap: 8px; border-top: 1px solid #333538; align-items: center; }
+                .chat-footer input { flex: 1; background: #131314; border: 1px solid #444746; border-radius: 20px; padding: 10px 14px; color: white; outline: none; font-size: 0.9rem; }
+                .send-btn { background: #8ab4f8; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
                 .send-btn svg { width: 18px; height: 18px; fill: #131314; }
             </style>
         </head>
@@ -81,13 +110,15 @@ app.get('/', (req, res) => {
             <div class="chat-container" id="chatContainer" style="display: flex;">
                 <div class="chat-header">
                     <span>FuturePartner Gemini</span>
-                    <span style="font-size: 11px; color: #8ab4f8;">● Live Core</span>
+                    <span style="font-size: 11px; color: #8ab4f8; display: flex; align-items: center; gap: 5px;">
+                        <span style="width: 6px; height: 6px; background: #8ab4f8; border-radius: 50%;"></span> Live Core
+                    </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">שלום! אני ה-Gemini שלך. שאל אותי כל שאלה או בקש עזרה תוך כדי תנועה.</div>
+                    <div class="message agent">Hello! I am your Gemini AI assistant. Ask me anything or request gaming help!</div>
                 </div>
                 <div class="chat-footer">
-                    <input type="text" id="userInput" placeholder="הקלד הודעה..." onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" placeholder="Ask Gemini anything..." onkeypress="handleKeyPress(event)">
                     <button class="send-btn" onclick="sendMessage()">
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -127,7 +158,7 @@ app.get('/', (req, res) => {
                     } catch (e) {
                         const errMsg = document.createElement('div');
                         errMsg.className = 'message agent';
-                        errMsg.innerText = "שגיאת תקשורת.";
+                        errMsg.innerText = "Connection error with server.";
                         body.appendChild(errMsg);
                     }
                 }
