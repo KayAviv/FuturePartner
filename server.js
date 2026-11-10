@@ -27,33 +27,29 @@ app.get('/manifest.json', (req, res) => {
     });
 });
 
-// API Endpoint לעיבוד בקשות אמת בעזרת AI
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', (req, res) => {
     const { message } = req.body;
-    const lower = message.toLowerCase();
+    const lower = message ? message.toLowerCase() : '';
 
-    // לוגיקת פעולות חכמה בזמן אמת עבור Cactus Club / שיחות / תורים
-    let replyText = "";
+    let replyText = "Processing your request through FuturePartner core...";
     let actionType = null;
     let actionUrl = "";
 
-    if (lower.includes('cactus club') || lower.includes('book') || lower.includes('restaurant')) {
-        replyText = "Initiating active reservation setup for Cactus Club Cafe (Party of 3, Tomorrow 9:00 PM). Direct booking line & digital queue link generated below:";
-        actionType = "🍽️ Open Reservation Line";
-        actionUrl = "tel:18005550199"; // או קישור ישיר לטופס האונליין של Cactus Club
+    if (lower.includes('cactus club') || lower.includes('restaurant') || lower.includes('book') || lower.includes('vernon')) {
+        replyText = "Cactus Club Cafe (Vernon) target acquired. Priority table reservation protocol ready. Tap below to launch immediate dialer call:";
+        actionType = "🍽️ Call Cactus Club Now";
+        actionUrl = "tel:+12505423838";
     } else if (lower.includes('call') || lower.includes('dial')) {
-        replyText = "Executing automatic dialer sequence on your device:";
-        actionType = "📞 Execute Call Now";
+        replyText = "Preparing direct device dialer action:";
+        actionType = "📞 Launch Phone Dialer";
         actionUrl = "tel:";
     } else {
-        replyText = "Command processed via FuturePartner core. Request: '" + message + "'";
+        replyText = "Request analyzed: '" + message + "'. Ready for execution.";
+        actionType = "⚡ Execute Action";
+        actionUrl = "tel:";
     }
 
-    return res.json({
-        reply: replyText,
-        actionType: actionType,
-        actionUrl: actionUrl
-    });
+    res.json({ reply: replyText, actionType, actionUrl });
 });
 
 app.get('/', (req, res) => {
@@ -87,7 +83,7 @@ app.get('/', (req, res) => {
             <div class="agent-bubble" onclick="toggleChat()">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.59 1.37 5.09L2 22l4.91-1.37C8.41 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.42 0-2.76-.38-3.91-1.05l-.28-.17-2.9 8.1 3.12-2.78.19-.11C9.24 19.62 10.58 20 12 20c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8c0 1.33.33 2.61.94 3.73l-.44.78.96-.27c1.12.61 2.4.94 3.73.94 4.41 0 8-3.59 8-8s-3.59-8-8-8z"/></svg>
             </div>
-            <div class="chat-container" id="chatContainer">
+            <div class="chat-container" id="chatContainer" style="display: flex;">
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
                     <span style="font-size: 12px; color: #4ade80; display: flex; align-items: center; gap: 6px;">
@@ -95,7 +91,7 @@ app.get('/', (req, res) => {
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am FuturePartner. Send any request—booking tables, calling numbers, or checking availability.</div>
+                    <div class="message agent">Hello! I am FuturePartner. Ready to handle restaurant reservations and phone automation.</div>
                 </div>
                 <div class="chat-footer">
                     <input type="text" id="userInput" placeholder="Type command..." onkeypress="handleKeyPress(event)">
@@ -140,7 +136,10 @@ app.get('/', (req, res) => {
                         body.appendChild(agentMsg);
                         body.scrollTop = body.scrollHeight;
                     } catch (e) {
-                        console.error(e);
+                        const errMsg = document.createElement('div');
+                        errMsg.className = 'message agent';
+                        errMsg.innerText = "Connection error. Please try again.";
+                        body.appendChild(errMsg);
                     }
                 }
                 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
