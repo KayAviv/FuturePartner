@@ -1,11 +1,15 @@
 const express = require('express');
 const cors = require('cors');
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// אתחול מדויק של מנוע ה-AI באמצעות המשתנה שהגדרת ב-Render
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.get('/manifest.json', (req, res) => {
     res.json({
@@ -39,42 +43,22 @@ app.post('/api/chat', async (req, res) => {
         return res.json({ reply: "I am listening. How can I help you?" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    // אם עדיין לא הוגדר מפתח ב-Render
-    if (!apiKey) {
-        return res.json({ 
-            reply: "Please add your GEMINI_API_KEY inside Render Environment Variables to enable live Gemini AI responses!" 
-        });
-    }
-
     try {
-        // קריאה ישירה למנוע Gemini 2.5 Flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: query }]
-                }],
-                systemInstruction: {
-                    parts: [{ text: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally in English, help with gaming strategies, general chat, sports, news, and tasks." }]
-                }
-            })
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: query,
+            config: {
+                systemInstruction: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally and helpfully in English to any question, chat, gaming strategy, or task."
+            }
         });
 
-        const data = await response.json();
-        
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            const aiReply = data.candidates[0].content.parts[0].text;
-            return res.json({ reply: aiReply });
-        } else {
-            return res.json({ reply: "I'm processing your request, but received an unexpected response structure. Try asking again!" });
-        }
+        // שליפת הטקסט בצורה בטוחה וישירה מהספרייה הרשמית
+        const aiReply = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || "I am on it!";
+        return res.json({ reply: aiReply });
 
     } catch (error) {
-        console.error("Gemini API Fetch Error:", error);
-        return res.json({ reply: "Connection error with Gemini core. Please check your network or API key." });
+        console.error("Gemini SDK Error:", error);
+        return res.json({ reply: "I am connected, but encountered a minor processing glitch. Try asking again!" });
     }
 });
 
