@@ -7,11 +7,28 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// הגשת קובץ ה-Manifest ישירות מהשרת (מונע שגיאות טעינה)
 app.get('/manifest.json', (req, res) => {
-    res.sendFile(__dirname + '/manifest.json');
+    res.json({
+        "name": "FuturePartner",
+        "short_name": "FuturePartner",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#0f172a",
+        "orientation": "portrait",
+        "icons": [
+            {
+                "src": "https://cdn-icons-png.flaticon.com/512/2097/2097276.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }
+        ]
+    });
 });
 
-// FuturePartner Floating Bubble UI (English)
+// ממשק הבועה הצפה (Floating Bubble UI) באנגלית מלאה
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -29,7 +46,6 @@ app.get('/', (req, res) => {
                     font-family: system-ui, -apple-system, sans-serif;
                     overflow: hidden;
                 }
-                /* Floating Bubble */
                 .agent-bubble {
                     position: fixed;
                     bottom: 30px;
@@ -60,7 +76,6 @@ app.get('/', (req, res) => {
                     70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
                     100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
                 }
-                /* Chat Container */
                 .chat-container {
                     position: fixed;
                     bottom: 110px;
@@ -77,7 +92,6 @@ app.get('/', (req, res) => {
                     flex-direction: column;
                     z-index: 999998;
                     overflow: hidden;
-                    transition: all 0.3s ease;
                 }
                 .chat-header {
                     padding: 18px 20px;
@@ -147,15 +161,11 @@ app.get('/', (req, res) => {
             </style>
         </head>
         <body>
-
-            <!-- Floating Bubble -->
             <div class="agent-bubble" onclick="toggleChat()">
                 <svg viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.59 1.37 5.09L2 22l4.91-1.37C8.41 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.42 0-2.76-.38-3.91-1.05l-.28-.17-2.9 8.1 3.12-2.78.19-.11C9.24 19.62 10.58 20 12 20c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8c0 1.33.33 2.61.94 3.73l-.44.78.96-.27c1.12.61 2.4.94 3.73.94 4.41 0 8-3.59 8-8s-3.59-8-8-8z"/>
                 </svg>
             </div>
-
-            <!-- Chat Window -->
             <div class="chat-container" id="chatContainer">
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
@@ -164,7 +174,7 @@ app.get('/', (req, res) => {
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am FuturePartner, your autonomous super-agent. Connected to an infinite intelligence core and device automation systems. How can I assist you today?</div>
+                    <div class="message agent">Hello! I am FuturePartner, your autonomous super-agent. How can I assist you today?</div>
                 </div>
                 <div class="chat-footer">
                     <input type="text" id="userInput" placeholder="Type or speak to your agent..." onkeypress="handleKeyPress(event)">
@@ -173,18 +183,15 @@ app.get('/', (req, res) => {
                     </button>
                 </div>
             </div>
-
             <script>
                 function toggleChat() {
                     const chat = document.getElementById('chatContainer');
                     chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
                 }
-
                 function sendMessage() {
                     const input = document.getElementById('userInput');
                     const body = document.getElementById('chatBody');
                     if (!input.value.trim()) return;
-
                     const userMsg = document.createElement('div');
                     userMsg.className = 'message';
                     userMsg.style.background = '#3b82f6';
@@ -192,20 +199,17 @@ app.get('/', (req, res) => {
                     userMsg.style.alignSelf = 'flex-end';
                     userMsg.innerText = input.value;
                     body.appendChild(userMsg);
-
                     const text = input.value;
                     input.value = '';
                     body.scrollTop = body.scrollHeight;
-
                     setTimeout(() => {
                         const agentMsg = document.createElement('div');
                         agentMsg.className = 'message agent';
-                        agentMsg.innerText = "Processing request and executing background automation for: " + text;
+                        agentMsg.innerText = "Processing request for: " + text;
                         body.appendChild(agentMsg);
                         body.scrollTop = body.scrollHeight;
                     }, 1000);
                 }
-
                 function handleKeyPress(e) {
                     if (e.key === 'Enter') sendMessage();
                 }
