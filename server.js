@@ -41,28 +41,34 @@ app.post('/api/chat', async (req, res) => {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        return res.json({ reply: "Please set your GEMINI_API_KEY in Render environment variables." });
+        return res.json({ reply: "Error: GEMINI_API_KEY is missing in Render Environment Variables!" });
     }
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: query }] }],
-                systemInstruction: {
-                    parts: [{ text: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. Answer naturally and helpfully in English to any question, chat, gaming strategy, or task." }]
-                }
+                contents: [{ parts: [{ text: query }] }]
             })
         });
 
         const data = await response.json();
-        const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I am on it! How else can I assist you?";
-        return res.json({ reply: aiReply });
+        
+        if (data.error) {
+            return res.json({ reply: "Google API Error: " + data.error.message });
+        }
+
+        const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiReply) {
+            return res.json({ reply: aiReply });
+        } else {
+            return res.json({ reply: "Received empty response from Gemini model." });
+        }
 
     } catch (error) {
-        console.error("API Error:", error);
-        return res.json({ reply: "I received your message: '" + query + "'. Let's keep chatting!" });
+        console.error("Fetch Error:", error);
+        return res.json({ reply: "Server connection error: " + error.message });
     }
 });
 
@@ -103,7 +109,7 @@ app.get('/', (req, res) => {
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am your Gemini AI assistant. Ask me anything or request gaming help!</div>
+                    <div class="message agent">Hello! I am your Gemini AI assistant. Ask me anything!</div>
                 </div>
                 <div class="chat-footer">
                     <input type="text" id="userInput" placeholder="Ask Gemini anything..." onkeypress="handleKeyPress(event)">
