@@ -11,11 +11,11 @@ app.get('/manifest.json', (req, res) => {
     res.sendFile(__dirname + '/manifest.json');
 });
 
-// דף הבית הכולל את ממשק הבועה הצפה (Floating Bubble UI)
+// FuturePartner Floating Bubble UI (English)
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
-        <html lang="he" dir="rtl">
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
                     font-family: system-ui, -apple-system, sans-serif;
                     overflow: hidden;
                 }
-                /* הבועה הצפה */
+                /* Floating Bubble */
                 .agent-bubble {
                     position: fixed;
                     bottom: 30px;
@@ -60,7 +60,7 @@ app.get('/', (req, res) => {
                     70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
                     100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
                 }
-                /* חלון הצ'אט שנפתח מהבועה */
+                /* Chat Container */
                 .chat-container {
                     position: fixed;
                     bottom: 110px;
@@ -109,7 +109,7 @@ app.get('/', (req, res) => {
                     background: #1e293b;
                     color: #f8fafc;
                     align-self: flex-start;
-                    border-bottom-right-radius: 4px;
+                    border-bottom-left-radius: 4px;
                 }
                 .chat-footer {
                     padding: 15px;
@@ -148,14 +148,14 @@ app.get('/', (req, res) => {
         </head>
         <body>
 
-            <!-- הבועה הצפה במסך -->
+            <!-- Floating Bubble -->
             <div class="agent-bubble" onclick="toggleChat()">
                 <svg viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.59 1.37 5.09L2 22l4.91-1.37C8.41 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.42 0-2.76-.38-3.91-1.05l-.28-.17-2.9 8.1 3.12-2.78.19-.11C9.24 19.62 10.58 20 12 20c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8c0 1.33.33 2.61.94 3.73l-.44.78.96-.27c1.12.61 2.4.94 3.73.94 4.41 0 8-3.59 8-8s-3.59-8-8-8z"/>
                 </svg>
             </div>
 
-            <!-- חלון השיחה של הסוכן -->
+            <!-- Chat Window -->
             <div class="chat-container" id="chatContainer">
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
@@ -164,10 +164,10 @@ app.get('/', (req, res) => {
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">שלום כפיר! אני FuturePartner, הסוכן האישי שלך. אני מחובר למוח אינסופי ולמערכות המכשיר. איפה תרצה שאעזור לך עכשיו? (התאמה למסעדות, חיפוש, או ביצוע שיחות אוטומטיות).</div>
+                    <div class="message agent">Hello! I am FuturePartner, your autonomous super-agent. Connected to an infinite intelligence core and device automation systems. How can I assist you today?</div>
                 </div>
                 <div class="chat-footer">
-                    <input type="text" id="userInput" placeholder="דבר או כתוב לסוכן..." onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" placeholder="Type or speak to your agent..." onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()">
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -200,7 +200,7 @@ app.get('/', (req, res) => {
                     setTimeout(() => {
                         const agentMsg = document.createElement('div');
                         agentMsg.className = 'message agent';
-                        agentMsg.innerText = "מעבד את הבקשה ומבצע אוטומציה ברקע עבור: " + text;
+                        agentMsg.innerText = "Processing request and executing background automation for: " + text;
                         body.appendChild(agentMsg);
                         body.scrollTop = body.scrollHeight;
                     }, 1000);
