@@ -13,8 +13,8 @@ app.get('/manifest.json', (req, res) => {
         "short_name": "FuturePartner",
         "start_url": "/",
         "display": "standalone",
-        "background_color": "#0f172a",
-        "theme_color": "#0f172a",
+        "background_color": "#0b0f19",
+        "theme_color": "#3b82f6",
         "orientation": "portrait",
         "icons": [
             {
@@ -80,7 +80,7 @@ app.get('/', (req, res) => {
                     right: 20px;
                     width: 360px;
                     max-width: calc(100vw - 40px);
-                    height: 520px;
+                    height: 540px;
                     background: rgba(15, 23, 42, 0.98);
                     backdrop-filter: blur(20px);
                     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -131,6 +131,18 @@ app.get('/', (req, res) => {
                     border-bottom-left-radius: 4px;
                     border: 1px solid rgba(255, 255, 255, 0.05);
                 }
+                .action-btn {
+                    display: inline-block;
+                    margin-top: 8px;
+                    background: linear-gradient(135deg, #22c55e, #16a34a);
+                    color: white;
+                    padding: 8px 14px;
+                    border-radius: 10px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+                }
                 .chat-footer {
                     padding: 15px;
                     background: rgba(30, 41, 59, 0.7);
@@ -177,14 +189,14 @@ app.get('/', (req, res) => {
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
                     <span style="font-size: 12px; color: #4ade80; display: flex; align-items: center; gap: 6px;">
-                        <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; display: inline-block;"></span> 24/7 Live
+                        <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; display: inline-block;"></span> 24/7 Active
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am FuturePartner, your autonomous AI super-agent. Ready for restaurant bookings, phone automation, and task execution. How can I help you?</div>
+                    <div class="message agent">Hello! I am FuturePartner. Tell me what you need—booking a table, checking availability, or making a direct phone call via your Samsung device.</div>
                 </div>
                 <div class="chat-footer">
-                    <input type="text" id="userInput" placeholder="Type a command (e.g. book table)..." onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" placeholder="Type command (e.g. Call restaurant)..." onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()">
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -203,7 +215,6 @@ app.get('/', (req, res) => {
                     const text = input.value.trim();
                     if (!text) return;
 
-                    // Append user message
                     const userMsg = document.createElement('div');
                     userMsg.className = 'message user';
                     userMsg.innerText = text;
@@ -211,22 +222,22 @@ app.get('/', (req, res) => {
                     input.value = '';
                     body.scrollTop = body.scrollHeight;
 
-                    // Simulate intelligent autonomous agent response
                     setTimeout(() => {
                         const agentMsg = document.createElement('div');
                         agentMsg.className = 'message agent';
                         
-                        let reply = "Executing request: '" + text + "'. All systems active.";
-                        if (text.toLowerCase().includes('book') || text.toLowerCase().includes('restaurant')) {
-                            reply = "Confirmed! Initializing automated booking protocol for your request. Connecting to restaurant line...";
-                        } else if (text.toLowerCase().includes('call')) {
-                            reply = "Initiating secure phone automation sequence via Samsung dialer interface...";
+                        let lower = text.toLowerCase();
+                        if (lower.includes('call') || lower.includes('phone') || lower.includes('dial')) {
+                            agentMsg.innerHTML = 'Preparing direct Samsung dialer action for your request.<br><a href="tel:911" class="action-btn">📞 Launch Phone Dialer Now</a>';
+                        } else if (lower.includes('book') || lower.includes('restaurant') || lower.includes('table')) {
+                            agentMsg.innerHTML = 'Table booking protocol ready. Tap below to place the priority call:<br><a href="tel:18005550199" class="action-btn">🍽️ Call Restaurant Line</a>';
+                        } else {
+                            agentMsg.innerText = "Analyzed '" + text + "'. Ready to execute device action or automated task.";
                         }
 
-                        agentMsg.innerText = reply;
                         body.appendChild(agentMsg);
                         body.scrollTop = body.scrollHeight;
-                    }, 800);
+                    }, 600);
                 }
 
                 function handleKeyPress(e) {
