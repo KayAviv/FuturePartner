@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// אתחול מנוע ה-AI של Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.get('/manifest.json', (req, res) => {
@@ -35,42 +34,36 @@ app.get('/manifest.json', (req, res) => {
     });
 });
 
-// מנוע חכם המשלב שיחה חופשית עם זיהוי משימות ופעולות אמיתיות
+// מנוע צ'אט ושיחה חופשית לחלוטין מול Gemini AI
 app.post('/api/chat', async (req, res) => {
     const { message } = req.body;
     const query = message ? message.trim() : '';
 
     if (!query) {
-        return res.json({ reply: "I am ready. What would you like me to do?", actionType: null, actionUrl: "" });
+        return res.json({ reply: "I'm here. What would you like to talk about?", actionType: null, actionUrl: "" });
     }
 
     try {
-        // שליחת הבקשה למוח ה-AI
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: query,
             config: {
-                systemInstruction: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. You can chat about anything, answer general knowledge, sports, news, and help with tasks. If the user asks to call, book, or contact a business (like The Keg, Cactus Club, a restaurant, a clinic, or any service), analyze their request, provide a smart response, and explicitly offer a direct action button."
+                systemInstruction: "You are FuturePartner, an elite 24/7 autonomous AI super-agent floating on Samsung devices. You are a conversational partner for any topic: life advice, general knowledge, news, sports, gaming, and chatting. Answer naturally and intelligently. Only provide a phone action button (like tel: links) if the user explicitly asks to call or book a specific business like The Keg or Cactus Club."
             }
         });
 
-        let aiReply = response.text || "Task processed successfully.";
+        let aiReply = response.text || "I'm listening.";
         let actionType = null;
         let actionUrl = "";
 
         const lower = query.toLowerCase();
-        
-        // זיהוי חכם של בקשות חיוג, הזמנות ועסקים
+        // רק אם ביקשו במפורש עסק ספציפי נציג כפתור חיוג
         if (lower.includes('keg') || lower.includes('steakhouse')) {
-            actionType = "🥩 Call The Keg Steakhouse";
+            actionType = "🥩 Call The Keg";
             actionUrl = "tel:+17784843810";
         } else if (lower.includes('cactus club') || lower.includes('cactus')) {
-            actionType = "🍽️ Call Cactus Club Cafe";
+            actionType = "🍽️ Call Cactus Club";
             actionUrl = "tel:+12505423838";
-        } else if (lower.includes('call') || lower.includes('book') || lower.includes('reserve') || lower.includes('appointment') || lower.includes('תור') || lower.includes('להתקשר')) {
-            // ניסיון לחלץ שם עסק או פתיחת חייגן כללי
-            actionType = "📞 Open Phone Dialer / Connect";
-            actionUrl = "tel:";
         }
 
         res.json({ reply: aiReply, actionType, actionUrl });
@@ -78,9 +71,9 @@ app.post('/api/chat', async (req, res) => {
     } catch (error) {
         console.error("AI Error:", error);
         res.json({ 
-            reply: "FuturePartner core active. I received your command: '" + query + "'.", 
-            actionType: "📞 Call / Search", 
-            actionUrl: "tel:" 
+            reply: "Hello! I am your AI companion. How can I help you right now?", 
+            actionType: null, 
+            actionUrl: "" 
         });
     }
 });
@@ -119,8 +112,8 @@ app.get('/', (req, res) => {
         <body>
             <div class="welcome-overlay" id="welcomeOverlay">
                 <h1>FuturePartner AI</h1>
-                <p>Welcome! Tap below to activate your 24/7 floating super-agent and start managing tasks anywhere on your device.</p>
-                <button class="permission-btn" onclick="grantPermission()">Initialize Agent</button>
+                <p>Welcome! Tap below to activate your 24/7 floating AI companion for chats, questions, and tasks.</p>
+                <button class="permission-btn" onclick="grantPermission()">Start Chatting</button>
             </div>
 
             <div class="agent-bubble" onclick="toggleChat()">
@@ -130,14 +123,14 @@ app.get('/', (req, res) => {
                 <div class="chat-header">
                     <span>FuturePartner AI</span>
                     <span style="font-size: 11px; color: #4ade80; display: flex; align-items: center; gap: 5px;">
-                        <span style="width: 6px; height: 6px; background: #4ade80; border-radius: 50%;"></span> Gemini Core Live
+                        <span style="width: 6px; height: 6px; background: #4ade80; border-radius: 50%;"></span> Gemini Live
                     </span>
                 </div>
                 <div class="chat-body" id="chatBody">
-                    <div class="message agent">Hello! I am FuturePartner. Ask me anything, chat freely, or ask me to call or book services for you.</div>
+                    <div class="message agent">Hello! I am your AI companion. Ask me anything, chat freely, or request tasks.</div>
                 </div>
                 <div class="chat-footer">
-                    <input type="text" id="userInput" placeholder="Ask anything or command..." onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" placeholder="Ask anything or chat..." onkeypress="handleKeyPress(event)">
                     <button class="send-btn" onclick="sendMessage()">
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -184,7 +177,7 @@ app.get('/', (req, res) => {
                     } catch (e) {
                         const errMsg = document.createElement('div');
                         errMsg.className = 'message agent';
-                        errMsg.innerText = "Connection error with AI.";
+                        errMsg.innerText = "Connection error.";
                         body.appendChild(errMsg);
                     }
                 }
